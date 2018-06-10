@@ -1,0 +1,37 @@
+# Vim's .swp files
+*.swp
+
+# Object code
+*.o
+*.lo
+*.la
+/src/update_rootfs
+
+# Artifacts from GNU autotools
+Makefile.in
+/aclocal.m4
+/autom4te.cache
+/compile
+/config.h*
+/configure
+/depcomp
+/install-sh
+/missing
+/ar-lib
+/config.guess
+/config.sub
+/libtool
+/ltmain.sh
+
+# Artifacts from configure and the build process which are not objects
+Makefile
+/config.log
+/config.status
+.deps
+.libs
+/stamp-h1
+
+# Archive for distribution
+
+# Playground like files
+/playground
