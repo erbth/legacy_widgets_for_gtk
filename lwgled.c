@@ -13,14 +13,18 @@
  * default to green.
  */
 
-#define DEFAULT_LEFT_POS 4
-#define DEFAULT_TOP_POS	 4
-#define DEFAULT_SPACING  7
+#define LED_SPACING_MM		1
+#define LED_RADIUS_MM		1.5
 
 struct _LwgLedPrivate
 {
 	gint color;
 	gfloat intensity;
+
+	GdkRectangle led_rect;
+	GdkRectangle bin_child_rect;
+
+	gdouble led_cx, led_cy;
 };
 
 enum
@@ -150,8 +154,9 @@ static void lwg_led_get_preferred_width (GtkWidget* w, gint* min, gint* natural)
 	if (child)
 		gtk_widget_get_preferred_width (child, &child_min, &child_natural);
 
-	*min = 5 * mmpu_x + child_min;
-	*natural = 5 * mmpu_x + child_natural;
+	gint led_width = ceilf ((LED_SPACING_MM + LED_RADIUS_MM) * 2 * mmpu_x);
+	*min = led_width + child_min;
+	*natural = led_width + child_natural;
 }
 
 static void lwg_led_get_preferred_height (GtkWidget* w, gint* pmin, gint* pnatural)
@@ -170,8 +175,9 @@ static void lwg_led_get_preferred_height (GtkWidget* w, gint* pmin, gint* pnatur
 	if (child)
 		gtk_widget_get_preferred_height (child, &child_min, &child_natural);
 
-	min = 5 * mmpu_y;
-	natural = 5 * mmpu_y;
+	gint led_width = ceilf ((LED_SPACING_MM + LED_RADIUS_MM) * 2 * mmpu_y);
+	min = led_width;
+	natural = led_width;
 
 	min = child_min > min ? child_min : min;
 	natural = child_natural > natural ? child_natural : natural;
@@ -202,8 +208,9 @@ static void lwg_led_get_preferred_width_for_height (
 				child, height, &child_min, &child_natural);
 	}
 
-	*min = 5 * mmpu_x + child_min;
-	*natural = 5 * mmpu_x + child_natural;
+	gint led_width = ceilf ((LED_SPACING_MM + LED_RADIUS_MM) * 2 * mmpu_x);
+	*min = led_width + child_min;
+	*natural = led_width + child_natural;
 }
 
 static void lwg_led_get_preferred_height_for_width (
@@ -229,8 +236,9 @@ static void lwg_led_get_preferred_height_for_width (
 				child, width, &child_min, &child_natural);
 	}
 
-	min = 5 * mmpu_y;
-	natural = 5 * mmpu_y;
+	gint led_width = ceilf ((LED_SPACING_MM + LED_RADIUS_MM) * 2 * mmpu_y);
+	min = led_width;
+	natural = led_width;
 
 	min = child_min > min ? child_min : min;
 	natural = child_natural > natural ? child_natural : natural;
@@ -246,26 +254,28 @@ static void lwg_led_size_allocate (
 	GdkWindow* window;
 	GtkWidget* child;
 	LwgLed* led;
+	gdouble mmpu_x, mmpu_y;
 
 	led = LWG_LED (widget);
+	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+
+	/* Update internal private size information */
+	GdkRectangle *led_rect = &led->priv->led_rect;
+	led_rect->x = allocation->x;
+	led_rect->y = allocation->y;
+	led_rect->width = ceilf ((LED_SPACING_MM + LED_RADIUS_MM) * 2 * mmpu_x);
+	led_rect->height = allocation->height;
+
+	led->priv->led_cx = ceilf ((LED_SPACING_MM + LED_RADIUS_MM) * mmpu_x);
+	led->priv->led_cy = allocation->height / 2;
+
+	GdkRectangle *child_rect = &led->priv->bin_child_rect;
+	child_rect->x = allocation->x + led_rect->width;
+	child_rect->y = allocation->y;
+	child_rect->width = allocation->width - led_rect->width;
+	child_rect->height = allocation->height;
 
 	gtk_widget_set_allocation (widget, allocation);
-
-	child = gtk_bin_get_child (GTK_BIN (widget));
-	if (child)
-	{
-		GtkAllocation child_allocation;
-		gdouble mmpu_x, mmpu_y;
-
-		lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
-
-		child_allocation.x = allocation->x + 5 * mmpu_x;
-		child_allocation.y = allocation->y;
-		child_allocation.width = allocation->width - child_allocation.x;
-		child_allocation.height = allocation->height;
-
-		gtk_widget_set_allocation (child, &child_allocation);
-	}
 
 	window = gtk_widget_get_window (widget);
 	if (window)
@@ -273,6 +283,22 @@ static void lwg_led_size_allocate (
 				window,
 				allocation->x, allocation->y,
 				allocation->width, allocation->height);
+
+	child = gtk_bin_get_child (GTK_BIN (widget));
+	if (child && gtk_widget_get_visible (child))
+	{
+		GtkAllocation child_allocation;
+		gdouble mmpu_x, mmpu_y;
+
+		lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+
+		child_allocation.x = child_rect->x;
+		child_allocation.y = child_rect->y;
+		child_allocation.width = child_rect->width;
+		child_allocation.height = child_rect->height;
+
+		gtk_widget_size_allocate (child, &child_allocation);
+	}
 }
 
 static void lwg_led_realize (GtkWidget* w)
@@ -308,6 +334,13 @@ static void lwg_led_realize (GtkWidget* w)
 
 	gtk_widget_set_window (w, window);
 	gtk_widget_register_window (w, window);
+
+	/* Realize child if you have one */
+	GtkWidget* child = gtk_bin_get_child (GTK_BIN (led));
+	if (child)
+	{
+		gtk_widget_realize (child);
+	}
 }
 
 static gboolean lwg_led_draw (GtkWidget* w, cairo_t *cr)
@@ -321,10 +354,26 @@ static gboolean lwg_led_draw (GtkWidget* w, cairo_t *cr)
 	cairo_clip_extents (cr, &cx, &cy, &cw, &ch);
 
 	g_print ("%f, %f, %f, %f\n", cx, cy, cw, ch);
-		
-	led = LWG_LED (w);
 
-	lwg_led_draw_led (led, cr);
+	led = LWG_LED (w);
+	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+
+	/* Draw the LED */
+	cairo_save (cr);
+
+	if (led->priv->intensity < 0.5)
+		cairo_set_source_rgb (cr, 0, 0.2, 0);
+	else
+		cairo_set_source_rgb (cr, 0, 1, 0);
+
+	cairo_arc (cr,
+			led->priv->led_cx, led->priv->led_cy,
+			LED_RADIUS_MM * mmpu_x,
+			0, 2 * M_PI);
+
+	cairo_fill (cr);
+
+	cairo_restore (cr);
 
 	/* Draw the child */
 	child = gtk_bin_get_child (GTK_BIN (w));
@@ -332,7 +381,6 @@ static gboolean lwg_led_draw (GtkWidget* w, cairo_t *cr)
 	if (child)
 	{
 		/* Draw in millimeters */
-		lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 		cairo_translate (cr, 5 * mmpu_x, 0);
 
 		gtk_widget_draw (child, cr);
@@ -347,47 +395,13 @@ static void lwg_led_update (LwgLed* led)
 	GtkAllocation allocation;
 
 	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
-	gtk_widget_get_allocation (GTK_WIDGET (led), &allocation);
-
-	g_print ("allocation: x: %d, y: %d, w: %d, h: %d\n",
-			allocation.x, allocation.y, allocation.width, allocation.height);
-
-	GdkWindow *win = gtk_widget_get_window (GTK_WIDGET (led));
-	gint wx, wy, ww, wh;
-	gdk_window_get_geometry (win, &wx, &wy, &ww, &wh);
-
-	g_print ("window: x: %d, y: %d, w: %d, h: %d\n", wx, wy, ww, wh);
 
 	gtk_widget_queue_draw_area (
 			GTK_WIDGET (led),
-			1 * mmpu_x, allocation.height / 2.0 - 1.5 * mmpu_y - 1,
-			3 * mmpu_x + 1, 3 * mmpu_y + 2);
-}
-
-static void lwg_led_draw_led (LwgLed* led, cairo_t *cr)
-{
-	gdouble mmpu_x, mmpu_y;
-	GtkAllocation allocation;
-
-	/* Draw in millimeters */
-	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
-	gtk_widget_get_allocation (GTK_WIDGET (led), &allocation);
-
-	cairo_save (cr);
-
-	if (led->priv->intensity < 0.5)
-		cairo_set_source_rgb (cr, 0, 0.2, 0);
-	else
-		cairo_set_source_rgb (cr, 0, 1, 0);
-
-	cairo_arc (cr,
-			2.5 * mmpu_x, allocation.height / 2.0,
-			1.5 * mmpu_x,
-			0, 2 * M_PI);
-
-	cairo_fill (cr);
-
-	cairo_restore (cr);
+			floorf (led->priv->led_cx - LED_RADIUS_MM * mmpu_x),
+			floorf (led->priv->led_cy - LED_RADIUS_MM * mmpu_y),
+			ceilf (LED_RADIUS_MM * 2 * mmpu_x) + 1,
+			ceilf (LED_RADIUS_MM * 2 * mmpu_y) + 1);
 }
 
 GtkWidget* lwg_led_new (const gint color)
@@ -418,7 +432,7 @@ guint lwg_led_get_color (LwgLed* led)
 void lwg_led_set_intensity (LwgLed* led, const gfloat intensity)
 {
 	g_return_if_fail (LWG_IS_LED (led));
-	
+
 	if (intensity < 0.0f || intensity > 1.0f)
 	{
 		g_print ("LwgLed::set_intensity: intensity not in valid range (must be "
