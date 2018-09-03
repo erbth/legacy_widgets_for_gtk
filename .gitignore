@@ -24,7 +24,6 @@ Makefile.in
 /ltmain.sh
 
 # Artifacts from configure and the build process which are not objects
-Makefile
 /config.log
 /config.status
 .deps

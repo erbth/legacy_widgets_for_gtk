@@ -49,7 +49,6 @@ static void			lwg_led_realize		(GtkWidget*);
 static gboolean		lwg_led_draw		(GtkWidget*, cairo_t* cr);
 
 static void			lwg_led_update		(LwgLed* led);
-static void			lwg_led_draw_led	(LwgLed* led, cairo_t* cr);
 
 static GParamSpec *led_props[NUM_PROPERTIES] = { NULL, };
 
@@ -349,12 +348,6 @@ static gboolean lwg_led_draw (GtkWidget* w, cairo_t *cr)
 	LwgLed* led;
 	GtkWidget* child = NULL;
 
-	double cx, cy, cw, ch;
-
-	cairo_clip_extents (cr, &cx, &cy, &cw, &ch);
-
-	g_print ("%f, %f, %f, %f\n", cx, cy, cw, ch);
-
 	led = LWG_LED (w);
 	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
@@ -392,7 +385,6 @@ static gboolean lwg_led_draw (GtkWidget* w, cairo_t *cr)
 static void lwg_led_update (LwgLed* led)
 {
 	gdouble mmpu_x, mmpu_y;
-	GtkAllocation allocation;
 
 	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
