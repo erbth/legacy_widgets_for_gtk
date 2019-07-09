@@ -1,6 +1,8 @@
 # Vim's .swp files
 *.swp
 
+mysession.vim
+
 # Object code
 *.o
 *.lo
