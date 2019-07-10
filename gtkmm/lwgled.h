@@ -49,4 +49,19 @@ protected:
 	Glib::RefPtr<Gdk::Window> m_refGdkWindow;
 };
 
+class lwgRGBLED : public lwgLED
+{
+public:
+	lwgRGBLED (int diameter_mm = 3);
+
+	void set_red (double red);
+	void set_green (double green);
+	void set_blue (double blue);
+
+protected:
+	bool on_draw (const Cairo::RefPtr<Cairo::Context> &cr) override;
+
+	double m_red = 0., m_green = 0., m_blue = 0.;
+};
+
 #endif /* _LWGLED_H */

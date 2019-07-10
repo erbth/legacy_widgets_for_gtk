@@ -177,3 +177,77 @@ bool lwgLED::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
 
 	return true;
 }
+
+
+/* lwgRGBLED (dirty) */
+lwgRGBLED::lwgRGBLED (int diameter) :
+	lwgLED (diameter = diameter)
+{
+	m_intensity = 1.;
+}
+
+void lwgRGBLED::set_red (double red)
+{
+	m_red = MIN (MAX (red, 0.), 1.);
+
+	Gdk::Rectangle r (
+			floorf (m_led_cx - m_radius_mm * mmpu_x),
+			floorf (m_led_cy - m_radius_mm * mmpu_y),
+			ceilf (m_radius_mm * 2 * mmpu_x),
+			ceilf (m_radius_mm * 2 * mmpu_y));
+
+	if (m_refGdkWindow)
+		m_refGdkWindow->invalidate_rect (r, false);
+}
+
+void lwgRGBLED::set_green (double green)
+{
+	m_green = MIN (MAX (green, 0.), 1.);
+
+	Gdk::Rectangle r (
+			floorf (m_led_cx - m_radius_mm * mmpu_x),
+			floorf (m_led_cy - m_radius_mm * mmpu_y),
+			ceilf (m_radius_mm * 2 * mmpu_x),
+			ceilf (m_radius_mm * 2 * mmpu_y));
+
+	if (m_refGdkWindow)
+		m_refGdkWindow->invalidate_rect (r, false);
+}
+
+void lwgRGBLED::set_blue (double blue)
+{
+	m_blue = MIN (MAX (blue, 0.), 1.);
+
+	Gdk::Rectangle r (
+			floorf (m_led_cx - m_radius_mm * mmpu_x),
+			floorf (m_led_cy - m_radius_mm * mmpu_y),
+			ceilf (m_radius_mm * 2 * mmpu_x),
+			ceilf (m_radius_mm * 2 * mmpu_y));
+
+	if (m_refGdkWindow)
+		m_refGdkWindow->invalidate_rect (r, false);
+}
+
+
+bool lwgRGBLED::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
+{
+	const auto allocation = get_allocation ();
+	auto refStyleContext = get_style_context ();
+
+	refStyleContext->render_background (
+			cr,
+			allocation.get_x(), allocation.get_y(),
+			allocation.get_width(), allocation.get_height());
+
+	cr->set_source_rgba (
+			m_red * m_intensity,
+			m_green * m_intensity,
+			m_blue * m_intensity,
+			1);
+
+	cr->arc (m_led_cx, m_led_cy, m_radius_mm * mmpu_x, 0, 2 * M_PI);
+
+	cr->fill ();
+
+	return true;
+}

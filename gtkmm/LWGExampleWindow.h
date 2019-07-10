@@ -36,11 +36,23 @@ protected:
 	lwgLED m_led4;
 	Gtk::ToggleButton m_onoff4;
 
+	Gtk::Box m_HBox5;
+	Gtk::Frame m_frame5;
+	lwgRGBLED m_led5;
+	Gtk::Label m_label5;
+	Gtk::Scale m_5_r;
+	Gtk::Scale m_5_g;
+	Gtk::Scale m_5_b;
+
 	// Signal handlers
 	void on_onoff1_toggled ();
 	void on_onoff2_toggled ();
 	void on_onoff3_toggled ();
 	void on_onoff4_toggled ();
+
+	void on_5_r_changed ();
+	void on_5_g_changed ();
+	void on_5_b_changed ();
 };
 
 #endif /* _LWG_EXAMPLE_WINDOW_H */

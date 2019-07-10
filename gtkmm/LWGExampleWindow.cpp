@@ -11,7 +11,11 @@ LWGExampleWindow::LWGExampleWindow () :
 	m_onoff1 ("LED 1"),
 	m_onoff2 ("LED 2"),
 	m_onoff3 ("LED 3"),
-	m_onoff4 ("LED 4")
+	m_onoff4 ("LED 4"),
+	m_label5 ("LED 5"),
+	m_5_r (Gtk::ORIENTATION_VERTICAL),
+	m_5_g (Gtk::ORIENTATION_VERTICAL),
+	m_5_b (Gtk::ORIENTATION_VERTICAL) 
 {
 	set_title ("Legacy Widgets for GTK examples");
 	set_border_width (2);
@@ -43,6 +47,30 @@ LWGExampleWindow::LWGExampleWindow () :
 	m_frame4.add (m_led4);
 	m_HBox4.pack_start (m_onoff4, Gtk::PACK_SHRINK);
 
+	// LED 5
+	m_5_r.set_range (0,1);
+	m_5_r.set_value (0);
+	m_5_r.set_digits (2);
+	m_5_r.set_inverted (true);
+
+	m_5_g.set_range (0,1);
+	m_5_g.set_value (0);
+	m_5_g.set_digits (2);
+	m_5_g.set_inverted (true);
+
+	m_5_b.set_range (0,1);
+	m_5_b.set_value (0);
+	m_5_b.set_digits (2);
+	m_5_b.set_inverted (true);
+
+	m_VBox.pack_start (m_HBox5);
+	m_HBox5.pack_start (m_frame5, Gtk::PACK_SHRINK);
+	m_frame5.add (m_led5);
+	m_HBox5.pack_start (m_label5, Gtk::PACK_SHRINK);
+	m_HBox5.pack_start (m_5_r, Gtk::PACK_SHRINK, 10);
+	m_HBox5.pack_start (m_5_g, Gtk::PACK_SHRINK, 10);
+	m_HBox5.pack_start (m_5_b, Gtk::PACK_SHRINK, 10);
+
 	// Connect signal handlers
 	m_onoff1.signal_toggled().connect (
 			sigc::mem_fun (this, &LWGExampleWindow::on_onoff1_toggled));
@@ -56,7 +84,17 @@ LWGExampleWindow::LWGExampleWindow () :
 	m_onoff4.signal_toggled().connect (
 			sigc::mem_fun (this, &LWGExampleWindow::on_onoff4_toggled));
 
-	show_all_children ();
+
+	m_5_r.signal_value_changed().connect (
+			sigc::mem_fun (this, &LWGExampleWindow::on_5_r_changed));
+
+	m_5_g.signal_value_changed().connect (
+			sigc::mem_fun (this, &LWGExampleWindow::on_5_g_changed));
+
+	m_5_b.signal_value_changed().connect (
+			sigc::mem_fun (this, &LWGExampleWindow::on_5_b_changed));
+
+	show_all ();
 }
 
 LWGExampleWindow::~LWGExampleWindow ()
@@ -83,4 +121,20 @@ void LWGExampleWindow::on_onoff3_toggled ()
 void LWGExampleWindow::on_onoff4_toggled ()
 {
 	m_led4.set_intensity (m_onoff4.get_active() ? 1. : 0.);
+}
+
+
+void LWGExampleWindow::on_5_r_changed ()
+{
+	m_led5.set_red (m_5_r.get_value());
+}
+
+void LWGExampleWindow::on_5_g_changed ()
+{
+	m_led5.set_green (m_5_g.get_value());
+}
+
+void LWGExampleWindow::on_5_b_changed ()
+{
+	m_led5.set_blue (m_5_b.get_value());
 }
