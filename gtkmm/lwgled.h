@@ -8,10 +8,18 @@
 class lwgLED : public Gtk::Widget
 {
 public:
-	lwgLED (int diameter = 5);
+	lwgLED (int color = color::green, int diameter_mm = 3);
 	virtual ~lwgLED ();
 
-	void set_brightness (double b);
+	void set_intensity (double i);
+
+	class color {
+	public:
+		static const int red = 0;
+		static const int green = 1;
+		static const int yellow = 2;
+		static const int blue = 3;
+	};
 
 protected:
 	// Overrides
@@ -28,11 +36,15 @@ protected:
 	void on_unrealize () override;
 	bool on_draw (const Cairo::RefPtr<Cairo::Context> &cr) override;
 
-	int m_diameter;
-	int min_width, min_height;
+	int m_color;
+	const double m_spacing_mm = 1;
+	double m_radius_mm;
+	double m_led_cx, m_led_cy;
 
-	double m_brightness = 0.;
-	Gdk::RGBA m_color;
+	double mmpu_x = 96 / 25.4;
+	double mmpu_y = 96 / 25.4;
+
+	double m_intensity = 0.;
 
 	Glib::RefPtr<Gdk::Window> m_refGdkWindow;
 };

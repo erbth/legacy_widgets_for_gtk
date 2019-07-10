@@ -1,5 +1,6 @@
 // See https://developer.gnome.org/gtkmm-tutorial/stable/sec-custom-widgets.html.en
 
+#include <cmath>
 #include <cstring>
 #include <gdkmm/general.h>
 #include <iostream>
@@ -7,18 +8,26 @@
 
 using namespace std;
 
-lwgLED::lwgLED (int diameter) :
+lwgLED::lwgLED (int color, int diameter) :
 	Glib::ObjectBase("lwgLED"),
 	Gtk::Widget ()
 {
 	set_has_window (true);
 	set_name ("lwg-led");
 
-	m_diameter = diameter;
+	m_radius_mm = diameter / 2.;
 
-	min_width = min_height = (int) ((m_diameter) * 96 / 25.4);
-
-	cout << "min_height: " << min_height << endl;
+	if (
+			color != lwgLED::color::red &&
+			color != lwgLED::color::green &&
+			color != lwgLED::color::yellow &&
+			color != lwgLED::color::blue
+	   )
+	{
+		m_color = lwgLED::color::green;
+	}
+	else
+		m_color = color;
 }
 
 lwgLED::~lwgLED ()
@@ -31,12 +40,18 @@ Gtk::SizeRequestMode lwgLED::get_request_mode_vfunc () const
 }
 
 
-void lwgLED::set_brightness (double b)
+void lwgLED::set_intensity (double i)
 {
-	m_brightness = b;
+	i = MIN (MAX (i, 0.), 1.);
+	m_intensity = i;
 
 	const auto a = get_allocation ();
-	Gdk::Rectangle r (0, 0, a.get_width(), a.get_height());
+
+	Gdk::Rectangle r (
+			floorf (m_led_cx - m_radius_mm * mmpu_x),
+			floorf (m_led_cy - m_radius_mm * mmpu_y),
+			ceilf (m_radius_mm * 2 * mmpu_x),
+			ceilf (m_radius_mm * 2 * mmpu_y));
 
 	if (m_refGdkWindow)
 		m_refGdkWindow->invalidate_rect (r, false);
@@ -45,29 +60,36 @@ void lwgLED::set_brightness (double b)
 
 void lwgLED::get_preferred_width_vfunc (int &minimum_width, int &natural_width) const
 {
-	minimum_width = natural_width = min_width;
+	int led_width = ceilf ((m_spacing_mm + m_radius_mm) * 2 * mmpu_x);
+
+	minimum_width = led_width;
+	natural_width = led_width;
 }
 
 void lwgLED::get_preferred_height_for_width_vfunc (int width, int &minimum_height, int &natural_height) const
 {
-	minimum_height = min_height;
-	natural_height = width;
+	get_preferred_height (minimum_height, natural_height);
 }
 
 void lwgLED::get_preferred_height_vfunc (int &minimum_height, int &natural_height) const
 {
-	minimum_height = natural_height = min_height;
+	int led_height = ceilf ((m_spacing_mm + m_radius_mm) * 2 * mmpu_y);
+
+	minimum_height = led_height;
+	natural_height = led_height;
 }
 
 void lwgLED::get_preferred_width_for_height_vfunc (int height, int &minimum_width, int &natural_width) const
 {
-	minimum_width = min_width;
-	natural_width = height;
+	get_preferred_width (minimum_width, natural_width);
 }
 
 void lwgLED::on_size_allocate (Gtk::Allocation &allocation)
 {
 	set_allocation (allocation);
+
+	m_led_cx = ceilf ((m_spacing_mm + m_radius_mm) * mmpu_x);
+	m_led_cy = allocation.get_height() / 2;
 
 	if (m_refGdkWindow)
 	{
@@ -138,19 +160,20 @@ bool lwgLED::on_draw (const Cairo::RefPtr<Cairo::Context> &cr)
 			allocation.get_x(), allocation.get_y(),
 			allocation.get_width(), allocation.get_height());
 
-	double x = allocation.get_width() / 2.;
-	double y = allocation.get_height() / 2.;
+	double v = 0.2 + 0.8 * m_intensity;
 
-	double r1 = m_diameter * 96 / 25.4 / 2;
-	double r2 = r1 + 96 / 25.4;
+	if (m_color == color::red)
+		cr->set_source_rgba (v, 0, 0, 1);
+	else if (m_color == color::yellow)
+		cr->set_source_rgba (v, v, 0, 1);
+	else if (m_color == color::blue)
+		cr->set_source_rgba (0, 0, v, 1);
+	else
+		cr->set_source_rgba (0, v, 0, 1);
 
-	cr->set_source_rgba (1, 0, 0, 1);
-	cr->arc (x, y, 2.5, 0, 360);
+	cr->arc (m_led_cx, m_led_cy, m_radius_mm * mmpu_x, 0, 2 * M_PI);
+
 	cr->fill ();
-
-	cr->set_source_rgba (0, 0, 0, 1);
-	cr->arc (x, y, r2 + 0.5, 0, 360);
-	cr->stroke ();
 
 	return true;
 }
