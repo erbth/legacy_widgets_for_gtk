@@ -23,6 +23,7 @@ target_include_directories (LWGExample PRIVATE ${GTKMM_3_0_INCLUDE_DIRS})
 
 install(TARGETS legacy_widgets_for_gtk DESTINATION lib)
 install(FILES lwg_led_cpp.h DESTINATION include)
+install(FILES legacy-widgets-for-gtk.h DESTINATION include)
 
 # Packaging
 set(CPACK_SOURCE_GENERATOR "TGZ")
