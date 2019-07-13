@@ -36,3 +36,23 @@ Makefile.in
 
 # Playground like files
 /playground
+
+# Packaging
+gtkmm/debian/.debhelper/
+gtkmm/debian/debhelper-build-stamp
+gtkmm/debian/files
+gtkmm/debian/legacy-widgets-for-gtk-dev.debhelper.log
+gtkmm/debian/legacy-widgets-for-gtk-dev.substvars
+gtkmm/debian/legacy-widgets-for-gtk-dev/
+gtkmm/debian/legacy-widgets-for-gtk1.debhelper.log
+gtkmm/debian/legacy-widgets-for-gtk1.substvars
+gtkmm/debian/legacy-widgets-for-gtk1/
+gtkmm/debian/tmp/
+gtkmm/obj-x86_64-linux-gnu/
+legacy-widgets-for-gtk-dev_1.0.0_amd64.deb
+legacy-widgets-for-gtk1-dbgsym_1.0.0_amd64.deb
+legacy-widgets-for-gtk1_*_amd64.deb
+legacy-widgets-for-gtk_*.dsc
+legacy-widgets-for-gtk_*tar.xz
+legacy-widgets-for-gtk_*_amd64.buildinfo
+legacy-widgets-for-gtk_*_amd64.changes
