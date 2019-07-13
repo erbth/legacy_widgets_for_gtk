@@ -4,7 +4,7 @@
 #include <cstring>
 #include <gdkmm/general.h>
 #include <iostream>
-#include "lwgled.h"
+#include "lwg_led_cpp.h"
 
 using namespace std;
 

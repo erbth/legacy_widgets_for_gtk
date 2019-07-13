@@ -4,7 +4,7 @@
 #define _LWG_EXAMPLE_WINDOW_H
 
 #include <gtkmm.h>
-#include "lwgled.h"
+#include "lwg_led_cpp.h"
 
 class LWGExampleWindow : public Gtk::Window
 {

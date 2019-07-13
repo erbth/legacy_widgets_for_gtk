@@ -1,7 +1,7 @@
 // See https://developer.gnome.org/gtkmm-tutorial/stable/sec-custom-widgets.html.en
 
-#ifndef _LWGLED_H
-#define _LWGLED_H
+#ifndef _LWG_LED_CPP_H
+#define _LWG_LED_CPP_H
 
 #include <gtkmm/widget.h>
 
@@ -64,4 +64,4 @@ protected:
 	double m_red = 0., m_green = 0., m_blue = 0.;
 };
 
-#endif /* _LWGLED_H */
+#endif /* _LWG_LED_CPP_H */
