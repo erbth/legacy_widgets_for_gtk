@@ -354,10 +354,26 @@ static gboolean lwg_led_draw (GtkWidget* w, cairo_t *cr)
 	/* Draw the LED */
 	cairo_save (cr);
 
-	if (led->priv->intensity < 0.5)
-		cairo_set_source_rgb (cr, 0, 0.2, 0);
-	else
-		cairo_set_source_rgb (cr, 0, 1, 0);
+	gfloat value = 0.2 + 0.8 * led->priv->intensity;
+
+	switch (led->priv->color)
+	{
+		case LWG_LED_COLOR_GREEN:
+			cairo_set_source_rgb (cr, 0, value, 0);
+			break;
+
+		case LWG_LED_COLOR_RED:
+			cairo_set_source_rgb (cr, value, 0, 0);
+			break;
+
+		case LWG_LED_COLOR_YELLOW:
+			cairo_set_source_rgb (cr, value, value, 0);
+			break;
+
+		case LWG_LED_COLOR_BLUE:
+			cairo_set_source_rgb (cr, 0, 0, value);
+			break;
+	}
 
 	cairo_arc (cr,
 			led->priv->led_cx, led->priv->led_cy,
