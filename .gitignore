@@ -1,41 +1,11 @@
 # Vim's .swp files
 *.swp
 
+# My vim session
 mysession.vim
 
-# Object code
-*.o
-*.lo
-*.la
-/src/update_rootfs
-
-# Artifacts from GNU autotools
-Makefile.in
-/aclocal.m4
-/autom4te.cache
-/compile
-/config.h*
-/configure
-/depcomp
-/install-sh
-/missing
-/ar-lib
-/config.guess
-/config.sub
-/libtool
-/ltmain.sh
-
-# Artifacts from configure and the build process which are not objects
-/config.log
-/config.status
-.deps
-.libs
-/stamp-h1
-
-# Archive for distribution
-
-# Playground like files
-/playground
+# The build directory
+build/
 
 # Packaging
 gtkmm/debian/.debhelper/
@@ -49,10 +19,4 @@ gtkmm/debian/legacy-widgets-for-gtk1.substvars
 gtkmm/debian/legacy-widgets-for-gtk1/
 gtkmm/debian/tmp/
 gtkmm/obj-x86_64-linux-gnu/
-legacy-widgets-for-gtk-dev_1.0.0_amd64.deb
-legacy-widgets-for-gtk1-dbgsym_1.0.0_amd64.deb
-legacy-widgets-for-gtk1_*_amd64.deb
-legacy-widgets-for-gtk_*.dsc
-legacy-widgets-for-gtk_*tar.xz
-legacy-widgets-for-gtk_*_amd64.buildinfo
-legacy-widgets-for-gtk_*_amd64.changes
+deb/

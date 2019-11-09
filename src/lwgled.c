@@ -362,7 +362,7 @@ static gboolean lwg_led_draw (GtkWidget* w, cairo_t *cr)
 	cairo_arc (cr,
 			led->priv->led_cx, led->priv->led_cy,
 			LED_RADIUS_MM * mmpu_x,
-			0, 2 * M_PI);
+			0, 2 * G_PI);
 
 	cairo_fill (cr);
 
