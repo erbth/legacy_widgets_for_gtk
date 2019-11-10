@@ -1,25 +1,22 @@
 #include <string.h>
 #include <math.h>
-#include "lwgled.h"
-#include "lwgledprivate.h"
+#include "lwgrgbled.h"
+#include "lwgrgbledprivate.h"
 
 /**
- * SECTION: lwgled
- * @Short_description: A LED widget for GTK+
- * @Title: LwgLed
+ * SECTION: lwgrgbled
+ * @Short_description: A RGB LED widget for GTK+
+ * @Title: LwgRGBLed
  *
- * A LwgLed is a display widget which looks like a LED. The LED's color can
- * only be choosen during construction. If no color is specified, it will
- * default to green.
- */
+ * A LwgRGBLed is a display widget which looks like a RGB LED. */
 
 #define LED_SPACING_MM		1
 #define LED_RADIUS_MM		1.5
 
-struct _LwgLedPrivate
+struct _LwgRGBLedPrivate
 {
 	gint color;
-	gfloat intensity;
+	gfloat red, green, blue;
 
 	GdkRectangle led_rect;
 	GdkRectangle bin_child_rect;
@@ -30,123 +27,113 @@ struct _LwgLedPrivate
 enum
 {
 	PROP_0,
-	PROP_COLOR,
 	NUM_PROPERTIES
 };
 
-static void			lwg_led_set_property (GObject*, guint, const GValue*, GParamSpec*);
-static void			lwg_led_get_property (GObject*, guint, GValue*, GParamSpec*);
+static void			lwg_rgb_led_set_property (GObject*, guint, const GValue*, GParamSpec*);
+static void			lwg_rgb_led_get_property (GObject*, guint, GValue*, GParamSpec*);
 
-static void			lwg_led_get_mmpu	(LwgLed* led, gdouble* mmpu_x, gdouble* mmpu_y);
+static void			lwg_rgb_led_get_mmpu	(LwgRGBLed* led, gdouble* mmpu_x, gdouble* mmpu_y);
 
-static void			lwg_led_get_preferred_width (GtkWidget*, gint*, gint*);
-static void			lwg_led_get_preferred_height (GtkWidget*, gint*, gint*);
-static void			lwg_led_get_preferred_width_for_height (GtkWidget*, gint, gint*, gint*);
-static void			lwg_led_get_preferred_height_for_width (GtkWidget*, gint, gint*, gint*);
-static void			lwg_led_size_allocate (GtkWidget* widget, GtkAllocation* allocation);
+static void			lwg_rgb_led_get_preferred_width (GtkWidget*, gint*, gint*);
+static void			lwg_rgb_led_get_preferred_height (GtkWidget*, gint*, gint*);
+static void			lwg_rgb_led_get_preferred_width_for_height (GtkWidget*, gint, gint*, gint*);
+static void			lwg_rgb_led_get_preferred_height_for_width (GtkWidget*, gint, gint*, gint*);
+static void			lwg_rgb_led_size_allocate (GtkWidget* widget, GtkAllocation* allocation);
 
-static void			lwg_led_realize		(GtkWidget*);
-static gboolean		lwg_led_draw		(GtkWidget*, cairo_t* cr);
+static void			lwg_rgb_led_realize		(GtkWidget*);
+static gboolean		lwg_rgb_led_draw		(GtkWidget*, cairo_t* cr);
 
-static void			lwg_led_update		(LwgLed* led);
+static void			lwg_rgb_led_update		(LwgRGBLed* led);
 
-static GParamSpec *led_props[NUM_PROPERTIES] = { NULL, };
+static GParamSpec *rgb_led_props[NUM_PROPERTIES] = { NULL, };
 
-G_DEFINE_TYPE_WITH_PRIVATE (LwgLed, lwg_led, GTK_TYPE_BIN)
+G_DEFINE_TYPE_WITH_PRIVATE (LwgRGBLed, lwg_rgb_led, GTK_TYPE_BIN)
 
-static void lwg_led_class_init (LwgLedClass *class)
+static void lwg_rgb_led_class_init (LwgRGBLedClass *class)
 {
 	GObjectClass*		object_class = G_OBJECT_CLASS (class);
 	GtkWidgetClass* 	widget_class = GTK_WIDGET_CLASS (class);
 
-	object_class->set_property = lwg_led_set_property;
-	object_class->get_property = lwg_led_get_property;
+	object_class->set_property = lwg_rgb_led_set_property;
+	object_class->get_property = lwg_rgb_led_get_property;
 
-	widget_class->get_preferred_width				= lwg_led_get_preferred_width;
-	widget_class->get_preferred_height				= lwg_led_get_preferred_height;
-	widget_class->get_preferred_width_for_height	= lwg_led_get_preferred_width_for_height;
-	widget_class->get_preferred_height_for_width	= lwg_led_get_preferred_height_for_width;
-	widget_class->size_allocate					= lwg_led_size_allocate;
+	widget_class->get_preferred_width				= lwg_rgb_led_get_preferred_width;
+	widget_class->get_preferred_height				= lwg_rgb_led_get_preferred_height;
+	widget_class->get_preferred_width_for_height	= lwg_rgb_led_get_preferred_width_for_height;
+	widget_class->get_preferred_height_for_width	= lwg_rgb_led_get_preferred_height_for_width;
+	widget_class->size_allocate						= lwg_rgb_led_size_allocate;
 
-	widget_class->realize							= lwg_led_realize;
-	widget_class->draw								= lwg_led_draw;
+	widget_class->realize							= lwg_rgb_led_realize;
+	widget_class->draw								= lwg_rgb_led_draw;
 
-	led_props[PROP_COLOR] =
+	/* led_props[PROP_COLOR] =
 		g_param_spec_uint("color",
 				"Color",
 				"The LED's color",
-				0, LWG_LED_LAST_COLOR,
+				0, lwg_rgb_led_LAST_COLOR,
 				0,
-				G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
+				G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE); */
 
-	g_object_class_install_properties(object_class, NUM_PROPERTIES, led_props);
+	// g_object_class_install_properties(object_class, NUM_PROPERTIES, led_props);
 }
 
-static void lwg_led_init (LwgLed *led)
+static void lwg_rgb_led_init (LwgRGBLed *led)
 {
 	GtkWidget* widget = GTK_WIDGET (led);
 
-	led->priv = G_TYPE_INSTANCE_GET_PRIVATE (led, LWG_TYPE_LED, LwgLedPrivate);
-	led->priv->color = LWG_LED_COLOR_GREEN;
-	led->priv->intensity = 0.0f;
+	led->priv = G_TYPE_INSTANCE_GET_PRIVATE (led, LWG_TYPE_RGB_LED, LwgRGBLedPrivate);
+	led->priv->red = led->priv->green = led->priv->blue = 0.0f;
 
 	gtk_widget_set_has_window (widget, TRUE);
 }
 
-static void lwg_led_set_property (
+static void lwg_rgb_led_set_property (
 		GObject* object,
 		guint property_id,
 		const GValue* value,
 		GParamSpec* pspec)
 {
-	LwgLed* this = LWG_LED (object);
+	LwgRGBLed* this = LWG_RGB_LED (object);
 
 	switch (property_id)
 	{
-		case PROP_COLOR:
-			this->priv->color = g_value_get_uint (value);
-			break;
-
 		default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 			break;
 	}
 }
 
-static void lwg_led_get_property (
+static void lwg_rgb_led_get_property (
 		GObject* object,
 		guint property_id,
 		GValue* value,
 		GParamSpec* pspec)
 {
-	LwgLed* this = LWG_LED (object);
+	LwgRGBLed* this = LWG_RGB_LED (object);
 
 	switch (property_id)
 	{
-		case PROP_COLOR:
-			g_value_set_uint (value, this->priv->color);
-			break;
-
 		default:
 			G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
 			break;
 	}
 }
 
-static void lwg_led_get_mmpu (LwgLed* led, gdouble* mmpu_x, gdouble* mmpu_y)
+static void lwg_rgb_led_get_mmpu (LwgRGBLed* led, gdouble* mmpu_x, gdouble* mmpu_y)
 {
 	*mmpu_x = *mmpu_y = 96.0 / 25.4;
 }
 
-static void lwg_led_get_preferred_width (GtkWidget* w, gint* min, gint* natural)
+static void lwg_rgb_led_get_preferred_width (GtkWidget* w, gint* min, gint* natural)
 {
 	gdouble mmpu_x, mmpu_y;
-	LwgLed* led;
+	LwgRGBLed* led;
 	GtkWidget* child;
 	gint child_min = 0, child_natural = 0;
 
-	led = LWG_LED (w);
-	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+	led = LWG_RGB_LED (w);
+	lwg_rgb_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
 	child = gtk_bin_get_child (GTK_BIN (led));
 
@@ -158,16 +145,16 @@ static void lwg_led_get_preferred_width (GtkWidget* w, gint* min, gint* natural)
 	*natural = led_width + child_natural;
 }
 
-static void lwg_led_get_preferred_height (GtkWidget* w, gint* pmin, gint* pnatural)
+static void lwg_rgb_led_get_preferred_height (GtkWidget* w, gint* pmin, gint* pnatural)
 {
 	gdouble mmpu_x, mmpu_y;
-	LwgLed* led;
+	LwgRGBLed* led;
 	GtkWidget* child;
 	gint min, natural;
 	gint child_min = 0, child_natural = 0;
 
-	led = LWG_LED (w);
-	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+	led = LWG_RGB_LED (w);
+	lwg_rgb_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
 	child = gtk_bin_get_child (GTK_BIN (led));
 
@@ -185,19 +172,19 @@ static void lwg_led_get_preferred_height (GtkWidget* w, gint* pmin, gint* pnatur
 	*pnatural = natural;
 }
 
-static void lwg_led_get_preferred_width_for_height (
+static void lwg_rgb_led_get_preferred_width_for_height (
 		GtkWidget* w,
 		gint height,
 		gint* min,
 		gint* natural)
 {
 	gdouble mmpu_x, mmpu_y;
-	LwgLed* led;
+	LwgRGBLed* led;
 	GtkWidget* child;
 	gint child_min = 0, child_natural = 0;
 
-	led = LWG_LED (w);
-	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+	led = LWG_RGB_LED (w);
+	lwg_rgb_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
 	child = gtk_bin_get_child (GTK_BIN (led));
 
@@ -212,20 +199,20 @@ static void lwg_led_get_preferred_width_for_height (
 	*natural = led_width + child_natural;
 }
 
-static void lwg_led_get_preferred_height_for_width (
+static void lwg_rgb_led_get_preferred_height_for_width (
 		GtkWidget* w,
 		gint width,
 		gint* pmin,
 		gint* pnatural)
 {
 	gdouble mmpu_x, mmpu_y;
-	LwgLed* led;
+	LwgRGBLed* led;
 	GtkWidget* child;
 	gint min, natural;
 	gint child_min = 0, child_natural = 0;
 
-	led = LWG_LED (w);
-	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+	led = LWG_RGB_LED (w);
+	lwg_rgb_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
 	child = gtk_bin_get_child (GTK_BIN (led));
 
@@ -246,17 +233,17 @@ static void lwg_led_get_preferred_height_for_width (
 	*pnatural = natural;
 }
 
-static void lwg_led_size_allocate (
+static void lwg_rgb_led_size_allocate (
 		GtkWidget* widget,
 		GtkAllocation* allocation)
 {
 	GdkWindow* window;
 	GtkWidget* child;
-	LwgLed* led;
+	LwgRGBLed* led;
 	gdouble mmpu_x, mmpu_y;
 
-	led = LWG_LED (widget);
-	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+	led = LWG_RGB_LED (widget);
+	lwg_rgb_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
 	/* Update internal private size information */
 	GdkRectangle *led_rect = &led->priv->led_rect;
@@ -289,7 +276,7 @@ static void lwg_led_size_allocate (
 		GtkAllocation child_allocation;
 		gdouble mmpu_x, mmpu_y;
 
-		lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+		lwg_rgb_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
 		child_allocation.x = child_rect->x;
 		child_allocation.y = child_rect->y;
@@ -300,14 +287,14 @@ static void lwg_led_size_allocate (
 	}
 }
 
-static void lwg_led_realize (GtkWidget* w)
+static void lwg_rgb_led_realize (GtkWidget* w)
 {
-	LwgLed* led;
+	LwgRGBLed* led;
 	GtkAllocation allocation;
 	GdkWindow* window;
 	GdkWindowAttr attributes;
 
-	led = LWG_LED (w);
+	led = LWG_RGB_LED (w);
 
 	gtk_widget_set_realized (w, TRUE);
 	gtk_widget_get_allocation (w, &allocation);
@@ -342,39 +329,19 @@ static void lwg_led_realize (GtkWidget* w)
 	}
 }
 
-static gboolean lwg_led_draw (GtkWidget* w, cairo_t *cr)
+static gboolean lwg_rgb_led_draw (GtkWidget* w, cairo_t *cr)
 {
 	gdouble mmpu_x, mmpu_y;
-	LwgLed* led;
+	LwgRGBLed* led;
 	GtkWidget* child = NULL;
 
-	led = LWG_LED (w);
-	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+	led = LWG_RGB_LED (w);
+	lwg_rgb_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
 	/* Draw the LED */
 	cairo_save (cr);
 
-	gfloat value = 0.2f + 0.8f * led->priv->intensity;
-
-	switch (led->priv->color)
-	{
-		case LWG_LED_COLOR_GREEN:
-			cairo_set_source_rgb (cr, 0, value, 0);
-			break;
-
-		case LWG_LED_COLOR_RED:
-			cairo_set_source_rgb (cr, value, 0, 0);
-			break;
-
-		case LWG_LED_COLOR_YELLOW:
-			cairo_set_source_rgb (cr, value, value, 0);
-			break;
-
-		case LWG_LED_COLOR_BLUE:
-			cairo_set_source_rgb (cr, 0, 0, value);
-			break;
-	}
-
+	cairo_set_source_rgb (cr, led->priv->red, led->priv->green, led->priv->blue);
 	cairo_arc (cr,
 			led->priv->led_cx, led->priv->led_cy,
 			LED_RADIUS_MM * mmpu_x,
@@ -398,11 +365,11 @@ static gboolean lwg_led_draw (GtkWidget* w, cairo_t *cr)
 	return FALSE;
 }
 
-static void lwg_led_update (LwgLed* led)
+static void lwg_rgb_led_update (LwgRGBLed* led)
 {
 	gdouble mmpu_x, mmpu_y;
 
-	lwg_led_get_mmpu (led, &mmpu_x, &mmpu_y);
+	lwg_rgb_led_get_mmpu (led, &mmpu_x, &mmpu_y);
 
 	gtk_widget_queue_draw_area (
 			GTK_WIDGET (led),
@@ -412,14 +379,14 @@ static void lwg_led_update (LwgLed* led)
 			ceilf (LED_RADIUS_MM * 2 * mmpu_y) + 1);
 }
 
-GtkWidget* lwg_led_new (const gint color)
+GtkWidget* lwg_rgb_led_new ()
 {
-	return g_object_new (LWG_TYPE_LED, "color", color, NULL);
+	return g_object_new (LWG_TYPE_RGB_LED, NULL);
 }
 
-GtkWidget* lwg_led_new_with_label (const gint color, const gchar* label)
+GtkWidget* lwg_rgb_led_new_with_label (const gchar* label)
 {
-	GtkWidget* led = g_object_new (LWG_TYPE_LED, "color", color, NULL);
+	GtkWidget* led = g_object_new (LWG_TYPE_RGB_LED, NULL);
 
 	GtkWidget* label_widget = gtk_label_new (label);
 	gtk_label_set_xalign (GTK_LABEL (label_widget), 0);
@@ -429,32 +396,68 @@ GtkWidget* lwg_led_new_with_label (const gint color, const gchar* label)
 	return led;
 }
 
-guint lwg_led_get_color (LwgLed* led)
+void lwg_rgb_led_set_red (LwgRGBLed* led, const gfloat red)
 {
-	GValue val;
-	g_object_get_property (G_OBJECT(led), "color", &val);
+	g_return_if_fail (LWG_IS_RGB_LED (led));
 
-	return g_value_get_uint (&val);
-}
-
-void lwg_led_set_intensity (LwgLed* led, const gfloat intensity)
-{
-	g_return_if_fail (LWG_IS_LED (led));
-
-	if (intensity < 0.0f || intensity > 1.0f)
+	if (red < 0.0f || red > 1.0f)
 	{
-		g_print ("LwgLed::set_intensity: intensity not in valid range (must be "
+		g_print ("LwgRGBLed::set_red: intensity not in valid range (must be "
 				">= 0.0 and <= 1.0)\n");
 		return;
 	}
 
-	led->priv->intensity = intensity;
-	lwg_led_update (led);
+	led->priv->red = red;
+	lwg_rgb_led_update (led);
 }
 
-gfloat lwg_led_get_intensity (LwgLed* led)
+void lwg_rgb_led_set_green (LwgRGBLed* led, const gfloat green)
 {
-	g_return_val_if_fail (LWG_IS_LED (led), 0.0f);
+	g_return_if_fail (LWG_IS_RGB_LED (led));
 
-	return led->priv->intensity;
+	if (green < 0.0f || green > 1.0f)
+	{
+		g_print ("LwgRGBLed::set_green: intensity not in valid range (must be "
+				">= 0.0 and <= 1.0)\n");
+		return;
+	}
+
+	led->priv->green = green;
+	lwg_rgb_led_update (led);
+}
+
+void lwg_rgb_led_set_blue (LwgRGBLed* led, const gfloat blue)
+{
+	g_return_if_fail (LWG_IS_RGB_LED (led));
+
+	if (blue < 0.0f || blue > 1.0f)
+	{
+		g_print ("LwgRGBLed::set_blue: intensity not in valid range (must be "
+				">= 0.0 and <= 1.0)\n");
+		return;
+	}
+
+	led->priv->blue = blue;
+	lwg_rgb_led_update (led);
+}
+
+gfloat lwg_rgb_led_get_red (LwgRGBLed* led)
+{
+	g_return_val_if_fail (LWG_IS_RGB_LED (led), 0.0f);
+
+	return led->priv->red;
+}
+
+gfloat lwg_rgb_led_get_green (LwgRGBLed* led)
+{
+	g_return_val_if_fail (LWG_IS_RGB_LED (led), 0.0f);
+
+	return led->priv->green;
+}
+
+gfloat lwg_rgb_led_get_blue (LwgRGBLed* led)
+{
+	g_return_val_if_fail (LWG_IS_RGB_LED (led), 0.0f);
+
+	return led->priv->blue;
 }

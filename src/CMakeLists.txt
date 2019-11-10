@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.1)
 
 add_library (legacy_widgets_for_gtk_c SHARED
-	lwgled.c)
+	lwgled.c
+	lwgrgbled.c)
 
 target_link_libraries(legacy_widgets_for_gtk_c ${GTK3_LIBRARIES})
 target_include_directories(legacy_widgets_for_gtk_c PRIVATE ${GTK3_INCLUDE_DIRS})
