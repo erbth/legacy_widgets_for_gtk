@@ -8,7 +8,8 @@
  * @Short_description: A RGB LED widget for GTK+
  * @Title: LwgRGBLed
  *
- * A LwgRGBLed is a display widget which looks like a RGB LED. */
+ * A LwgRGBLed is a display widget which looks like a RGB LED.
+ */
 
 #define LED_SPACING_MM		1
 #define LED_RADIUS_MM		1.5
