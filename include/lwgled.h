@@ -28,14 +28,15 @@ struct _LwgLed
 	LwgLedPrivate *priv;
 };
 
-enum
+typedef enum
 {
 	LWG_LED_COLOR_GREEN,
 	LWG_LED_COLOR_RED,
 	LWG_LED_COLOR_YELLOW,
 	LWG_LED_COLOR_BLUE,
 	LWG_LED_LAST_COLOR
-};
+}
+LwgLedColor;
 
 GType		lwg_led_get_type		(void) G_GNUC_CONST;
 

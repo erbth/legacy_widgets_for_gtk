@@ -75,8 +75,8 @@ static void lwg_led_class_init (LwgLedClass *class)
 		g_param_spec_uint("color",
 				"Color",
 				"The LED's color",
-				0, LWG_LED_LAST_COLOR,
-				0,
+				0, LWG_LED_LAST_COLOR-1,
+				LWG_LED_COLOR_GREEN,
 				G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE);
 
 	g_object_class_install_properties(object_class, NUM_PROPERTIES, led_props);
