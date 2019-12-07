@@ -1,0 +1,10 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+includedir=${prefix}/include
+libdir=${prefix}/lib
+
+Name: legacy widgets for GTK
+Description: GTK+ widgets like LEDs.
+Version: @LWG_VERSION_MAJOR@.@LWG_VERSION_MINOR@.@LWG_VERSION_PATCH@
+Requires: gtk+-3.0
+Cflags: -I${includedir}
+Libs: -L${libdir} -llegacy_widgets_for_gtk

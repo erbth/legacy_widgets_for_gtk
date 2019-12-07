@@ -8,15 +8,15 @@ mysession.vim
 build/
 
 # Packaging
-gtkmm/debian/.debhelper/
-gtkmm/debian/debhelper-build-stamp
-gtkmm/debian/files
-gtkmm/debian/legacy-widgets-for-gtk-dev.debhelper.log
-gtkmm/debian/legacy-widgets-for-gtk-dev.substvars
-gtkmm/debian/legacy-widgets-for-gtk-dev/
-gtkmm/debian/legacy-widgets-for-gtk1.debhelper.log
-gtkmm/debian/legacy-widgets-for-gtk1.substvars
-gtkmm/debian/legacy-widgets-for-gtk1/
-gtkmm/debian/tmp/
-gtkmm/obj-x86_64-linux-gnu/
+_gtkmm/debian/.debhelper/
+_gtkmm/debian/debhelper-build-stamp
+_gtkmm/debian/files
+_gtkmm/debian/legacy-widgets-for-gtk-dev.debhelper.log
+_gtkmm/debian/legacy-widgets-for-gtk-dev.substvars
+_gtkmm/debian/legacy-widgets-for-gtk-dev/
+_gtkmm/debian/legacy-widgets-for-gtk1.debhelper.log
+_gtkmm/debian/legacy-widgets-for-gtk1.substvars
+_gtkmm/debian/legacy-widgets-for-gtk1/
+_gtkmm/debian/tmp/
+_gtkmm/obj-x86_64-linux-gnu/
 deb/
